@@ -24,11 +24,16 @@ def water_heat_flux(
 
     This function computes the water heat flux, which represents the energy exchange
     between a water surface and the atmosphere. The calculation is based on the AquaSEBS
-    model, incorporating factors such as water surface temperature, dew-point temperature,
-    wind speed, and net shortwave radiation.
+    model, which adapts the Surface Energy Balance System (SEBS) for water bodies using
+    the equilibrium temperature model (ETM) approach.
 
     References:
-    - AquaSEBS model: http://www.mdpi.com/2072-4292/8/7/583
+    - Abdelrady, A.; Timmermans, J.; Vekerdy, Z.; Salama, M.S. Surface Energy Balance 
+      of Fresh and Saline Waters: AquaSEBS. Remote Sens. 2016, 8, 583. 
+      https://doi.org/10.3390/rs8070583
+    - Fisher, J.B.; Dohlen, M.B.; Halverson, G.H.; Collison, J.W.; Hook, S.J.; 
+      Hulley, G.C. Remotely sensed terrestrial open water evaporation. 
+      Sci. Rep. 2023, 13, 8217. https://doi.org/10.1038/s41598-023-34921-2
 
     Parameters:
     :param WST_C: Water surface temperature in Celsius.
@@ -79,7 +84,10 @@ def water_heat_flux(
 
         check_distribution(RH, "RH")
 
-        # Calculate dew-point temperature in Celsius
+        # Calculate dew-point temperature using simplified approximation
+        # Td_C [°C] = dew-point temperature derived from air temperature and relative humidity
+        # Ta_C [°C] = air temperature, RH [fraction 0-1] = relative humidity
+        # Simplified formula: Td ≈ Ta - ((100 - RH%) / 5) where RH% = RH * 100
         Td_C = Ta_C - ((100 - RH * 100) / 5.0)
     
 
@@ -126,28 +134,48 @@ def water_heat_flux(
 
     check_distribution(SWnet, "SWnet")
 
-    # Calculate temperature difference (Tn)
-    Tn = 0.5 * (WST_C - Td_C)  # Half the difference between water surface temperature and dew-point temperature
+    # Calculate temperature difference (Tn) - Equation 8 in Abdelrady et al. (2016), Section 2.2.1
+    # Also validated in Fisher et al. (2023), Methods section (same formulation for consistency)
+    # Tn [°C] = half the difference between water surface temperature and dew-point temperature
+    # WST_C [°C] = water surface temperature, Td_C [°C] = dew-point temperature
+    Tn = 0.5 * (WST_C - Td_C)
     check_distribution(Tn, "Tn")
 
-    # Calculate evaporation efficiency (η)
-    η = 0.35 + 0.015 * WST_C + 0.0012 * (Tn ** 2)  # Accounts for baseline efficiency, temperature, and non-linear effects
+    # Calculate evaporation efficiency (η) - Equation 9 in Abdelrady et al. (2016), Section 2.2.1
+    # Also validated in Fisher et al. (2023), Methods section (same formulation for consistency)
+    # η [dimensionless] = evaporation efficiency accounting for baseline efficiency (0.35), 
+    # temperature dependence (0.015 * WST_C), and non-linear temperature difference effects (0.0012 * Tn²)
+    # WST_C [°C] = water surface temperature, Tn [°C] = temperature difference
+    η = 0.35 + 0.015 * WST_C + 0.0012 * (Tn ** 2)
     check_distribution(η, "η")
 
-    # Scale wind speed (S)
-    S = 3.3 * windspeed_mps  # Wind enhances evaporation and heat exchange
+    # Scale wind speed (S) - Equation 10 in Abdelrady et al. (2016), Section 2.2.1
+    # Also validated in Fisher et al. (2023), Methods section (same formulation for consistency)
+    # S [dimensionless] = scaled wind speed factor enhancing evaporation and heat exchange
+    # windspeed_mps [m/s] = wind speed at reference height
+    S = 3.3 * windspeed_mps
     check_distribution(S, "S")
 
-    # Calculate heat transfer coefficient (β)
-    β = 4.5 + 0.05 * WST_C + (η + 0.47) * S  # Combines temperature, evaporation efficiency, and wind effects
+    # Calculate heat transfer coefficient (β) - Equation 11 in Abdelrady et al. (2016), Section 2.2.1
+    # Also validated in Fisher et al. (2023), Methods section (same formulation for consistency)
+    # β [W/(m²·°C)] = thermal exchange coefficient combining temperature effects (4.5 + 0.05 * WST_C),
+    # evaporation efficiency, and wind enhancement ((η + 0.47) * S)
+    # WST_C [°C] = water surface temperature, η [dimensionless] = evaporation efficiency, S [dimensionless] = scaled wind speed
+    β = 4.5 + 0.05 * WST_C + (η + 0.47) * S
     check_distribution(β, "β")
 
-    # Calculate effective temperature (Te)
-    Te = Td_C + SWnet * β  # Combines dew-point temperature and radiation effects
+    # Calculate equilibrium temperature (Te) - Equation 12 in Abdelrady et al. (2016), Section 2.2.1
+    # Also validated in Fisher et al. (2023), Methods section (same formulation for consistency)
+    # Te [°C] = hypothetical water surface temperature when net heat flux exchange equals zero
+    # Td_C [°C] = dew-point temperature, SWnet [W/m²] = net shortwave radiation, β [W/(m²·°C)] = thermal exchange coefficient
+    Te = Td_C + (SWnet / β)
     check_distribution(Te, "Te")
 
-    # Calculate water heat flux (W)
-    W_Wm2 = β * (Te - WST_C)  # Final energy exchange rate between water surface and atmosphere
+    # Calculate water heat flux (W) - Equation 13 in Abdelrady et al. (2016), Section 2.2.1
+    # Also validated in Fisher et al. (2023), Methods section (same formulation for consistency)
+    # W_Wm2 [W/m²] = water heat flux representing energy exchange rate between water surface and atmosphere
+    # β [W/(m²·°C)] = thermal exchange coefficient, Te [°C] = equilibrium temperature, WST_C [°C] = water surface temperature
+    W_Wm2 = β * (Te - WST_C)
     check_distribution(W_Wm2, "W_Wm2")
 
     return W_Wm2
