@@ -34,6 +34,29 @@ def AquaSEBS(
         GEOS5FP_connection: GEOS5FP = None,
         gamma_Pa: Union[Raster, np.ndarray, float] = GAMMA_PA,
         resampling: str = RESAMPLING_METHOD):
+        # If geometry is not provided, try to infer from surface temperature raster
+    if geometry is None and isinstance(WST_C, Raster):
+        geometry = WST_C.geometry
+
+    # Create GEOS5FP connection if not provided
+    if GEOS5FP_connection is None:
+        GEOS5FP_connection = GEOS5FP()
+
+    if WST_C is None:
+        raise ValueError("water surface temperature (WST_C) not given")
+    
+    check_distribution(WST_C, "WST_C")
+
+    # Retrieve air temperature if not provided, using GEOS5FP and geometry/time
+    if Ta_C is None:
+        Ta_C = GEOS5FP_connection.Ta_C(
+            time_UTC=time_UTC,
+            geometry=geometry,
+            resampling=resampling
+        )
+
+    check_distribution(Ta_C, "Ta_C")
+
     # Compute net radiation if not provided, using albedo, ST_C, and emissivity
     if Rn_Wm2 is None and albedo is not None and WST_C is not None and emissivity is not None:
         # Retrieve incoming shortwave if not provided
@@ -43,12 +66,14 @@ def AquaSEBS(
                 geometry=geometry,
                 resampling=resampling
             )
+        
+        check_distribution(SWin_Wm2, "SWin_Wm2")
 
         # Calculate net radiation using Verma et al. method
         Rn_results = verma_net_radiation(
             SWin_Wm2=SWin_Wm2,
             albedo=albedo,
-            ST_C=ST_C,
+            ST_C=WST_C,
             emissivity=emissivity,
             Ta_C=Ta_C,
             RH=RH,
@@ -62,6 +87,8 @@ def AquaSEBS(
 
     if Rn_Wm2 is None:
         raise ValueError("net radiation (Rn_Wm2) not given")
+
+    check_distribution(Rn_Wm2, "Rn_Wm2")
 
     if W_Wm2 is None:
         # water heat flux
@@ -85,6 +112,8 @@ def AquaSEBS(
         Ta_C=Ta_C,
         gamma_Pa=gamma_Pa
     )
+
+    check_distribution(epsilon, "epsilon")
 
     LE_Wm2 = PT_ALPHA * epsilon * (Rn_Wm2 - W_Wm2)
     check_distribution(LE_Wm2, "LE_Wm2")
