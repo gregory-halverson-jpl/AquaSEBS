@@ -1,0 +1,1 @@
+RESAMPLING_METHOD = "cubic"
