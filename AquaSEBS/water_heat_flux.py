@@ -1,6 +1,7 @@
 from typing import Union
 import numpy as np
 from datetime import datetime
+import rasters as rt
 from rasters import Raster, RasterGeometry
 from GEOS5FP import GEOS5FP
 from check_distribution import check_distribution

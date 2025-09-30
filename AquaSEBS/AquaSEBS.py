@@ -12,7 +12,6 @@ from .constants import *
 
 from .water_heat_flux import water_heat_flux
 
-W_MAX_PROPORTION = 0.5  # Maximum proportion of net radiation that can be used for water heat flux
 PT_ALPHA = 1.26  # Priestley-Taylor coefficient
 
 ## TODO use NASADEM surface water body extent to mask out land when processing on rasters
@@ -91,7 +90,8 @@ def AquaSEBS(
     check_distribution(Rn_Wm2, "Rn_Wm2")
 
     if W_Wm2 is None:
-        # water heat flux
+        # Calculate water heat flux using validated AquaSEBS methodology
+        # No artificial constraints applied - trust the physics-based equations
         W_Wm2 = water_heat_flux(
             WST_C=WST_C,
             Ta_C=Ta_C,
@@ -103,8 +103,6 @@ def AquaSEBS(
             GEOS5FP_connection=GEOS5FP_connection,
             resampling=resampling
         )
-
-        W_Wm2 = rt.clip(W_Wm2, 0, W_MAX_PROPORTION * Rn_Wm2)
     
     check_distribution(W_Wm2, "W_Wm2")
 
