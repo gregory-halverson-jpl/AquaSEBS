@@ -1,8 +1,9 @@
-from typing import Union
+from typing import Union, Dict
 import numpy as np
 from datetime import datetime
 import rasters as rt
 from rasters import Raster, RasterGeometry
+from NASADEM import NASADEM
 from GEOS5FP import GEOS5FP
 from check_distribution import check_distribution
 from priestley_taylor import epsilon_from_Ta_C, GAMMA_PA, PT_ALPHA
@@ -29,11 +30,15 @@ def AquaSEBS(
         SWin_Wm2: Union[Raster, np.ndarray] = None,
         geometry: RasterGeometry = None,
         time_UTC: datetime = None,
+        water: Union[Raster, np.ndarray] = None,
         GEOS5FP_connection: GEOS5FP = None,
         α: Union[Raster, np.ndarray, float] = PT_ALPHA,
         γ_Pa: Union[Raster, np.ndarray, float] = GAMMA_PA,
-        resampling: str = RESAMPLING_METHOD):
+        resampling: str = RESAMPLING_METHOD,
+        mask_non_water_pixels: bool = MASK_NON_WATER_PIXELS) -> Dict[str, Union[Raster, np.ndarray, float]]:
         # If geometry is not provided, try to infer from surface temperature raster
+    results = {}
+
     if geometry is None and isinstance(WST_C, Raster):
         geometry = WST_C.geometry
 
@@ -45,6 +50,10 @@ def AquaSEBS(
         raise ValueError("water surface temperature (WST_C) not given")
     
     check_distribution(WST_C, "WST_C")
+
+    if water is None and geometry is not None:
+        water = NASADEM.swb(geometry=geometry)
+        check_distribution(water, "water")
 
     # Retrieve air temperature if not provided, using GEOS5FP and geometry/time
     if Ta_C is None and geometry is not None and time_UTC is not None:
@@ -83,6 +92,7 @@ def AquaSEBS(
         )
 
         Rn_Wm2 = Rn_results["Rn_Wm2"]
+        results.update(Rn_results)
 
     if Rn_Wm2 is None:
         raise ValueError("net radiation (Rn_Wm2) not given")
@@ -92,7 +102,7 @@ def AquaSEBS(
     if W_Wm2 is None:
         # Calculate water heat flux using validated AquaSEBS methodology
         # No artificial constraints applied - trust the physics-based equations
-        W_Wm2 = water_heat_flux(
+        water_heat_flux_results = water_heat_flux(
             WST_C=WST_C,
             Ta_C=Ta_C,
             Td_C=Td_C,
@@ -100,9 +110,14 @@ def AquaSEBS(
             SWnet=SWnet,
             geometry=geometry,
             time_UTC=time_UTC,
+            water=water,
             GEOS5FP_connection=GEOS5FP_connection,
-            resampling=resampling
+            resampling=resampling,
+            mask_non_water_pixels=mask_non_water_pixels
         )
+        
+        W_Wm2 = water_heat_flux_results["W_Wm2"]
+        results.update(water_heat_flux_results)
     
     check_distribution(W_Wm2, "W_Wm2")
 
@@ -124,8 +139,8 @@ def AquaSEBS(
     )
 
     LE_Wm2 = priestley_taylor_results["LE_potential_Wm2"]
-
     check_distribution(LE_Wm2, "LE_Wm2")
+    results.update(priestley_taylor_results)
+    results["LE_Wm2"] = LE_Wm2
 
-    return LE_Wm2
-
+    return results

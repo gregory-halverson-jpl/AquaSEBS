@@ -1,8 +1,9 @@
-from typing import Union
+from typing import Union, Dict
 import numpy as np
 from datetime import datetime
 import rasters as rt
 from rasters import Raster, RasterGeometry
+from NASADEM import NASADEM
 from GEOS5FP import GEOS5FP
 from check_distribution import check_distribution
 
@@ -18,8 +19,10 @@ def water_heat_flux(
         SWnet: Union[Raster, np.ndarray] = None,
         geometry: RasterGeometry = None,
         time_UTC: datetime = None,
+        water: Union[Raster, np.ndarray] = None,
         GEOS5FP_connection: GEOS5FP = None,
-        resampling: str = RESAMPLING_METHOD):
+        resampling: str = RESAMPLING_METHOD,
+        mask_non_water_pixels: bool = MASK_NON_WATER_PIXELS) -> Dict[str, Union[Raster, np.ndarray, float]]:
     """
     Calculate water heat flux based on input parameters.
 
@@ -63,6 +66,13 @@ def water_heat_flux(
         raise ValueError("water surface temperature (WST_C) not given")
     
     check_distribution(WST_C, "WST_C")
+
+    if water is None and geometry is not None and mask_non_water_pixels:
+        water = NASADEM.swb(geometry=geometry)
+        check_distribution(water, "water")
+    
+    if mask_non_water_pixels:
+        WST_C = rt.where(water, WST_C, np.nan)
 
     if Td_C is None and geometry is not None and time_UTC is not None:
         # Retrieve air temperature if not provided, using GEOS5FP and geometry/time
@@ -179,4 +189,17 @@ def water_heat_flux(
     W_Wm2 = β * (Te - WST_C)
     check_distribution(W_Wm2, "W_Wm2")
 
-    return W_Wm2
+    return {
+        "WST_C": WST_C,
+        "Ta_C": Ta_C,
+        "RH": RH,
+        "Td_C": Td_C,
+        "windspeed_mps": windspeed_mps,
+        "SWnet": SWnet,
+        "Tn": Tn,
+        "η": η,
+        "S": S,
+        "β": β,
+        "Te": Te,
+        "W_Wm2": W_Wm2
+    }
