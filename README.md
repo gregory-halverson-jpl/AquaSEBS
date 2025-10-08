@@ -38,13 +38,13 @@ This package is a faithful Python implementation combining the **Abdelrady et al
 
 The surface energy balance for water bodies follows the fundamental equation:
 
-$$R_n = LE + H + W \quad \text{(Eq. 1, Abdelrady et al., 2016)}$$
+Rn = LE + H + W  (Eq. 1, Abdelrady et al., 2016)
 
 Where:
-- $R_n$ = Net radiation ($\text{W}\,\text{m}^{-2}$) - total energy available at the water surface
-- $LE$ = Latent heat flux ($\text{W}\,\text{m}^{-2}$) - energy used for evaporation
-- $H$ = Sensible heat flux ($\text{W}\,\text{m}^{-2}$) - energy transferred to the atmosphere via convection
-- $W$ = Water heat flux ($\text{W}\,\text{m}^{-2}$) - energy stored in or released from the water body
+- Rn = Net radiation (W·m⁻²) - total energy available at the water surface
+- LE = Latent heat flux (W·m⁻²) - energy used for evaporation
+- H = Sensible heat flux (W·m⁻²) - energy transferred to the atmosphere via convection
+- W = Water heat flux (W·m⁻²) - energy stored in or released from the water body
 
 ### Water Heat Flux Calculation (Equilibrium Temperature Model)
 
@@ -52,64 +52,63 @@ The water heat flux is calculated using the equilibrium temperature model (ETM) 
 
 #### Step 1: Temperature Difference Calculation
 
-$$T_n = 0.5 \times (WST - T_d) \quad \text{(Eq. 8, Abdelrady et al., 2016)}$$
+Tn = 0.5 × (WST - Td)  (Eq. 8, Abdelrady et al., 2016)
 
 Where:
-- $T_n$ = Temperature difference parameter ($\text{°C}$)
-- $WST$ = Water surface temperature ($\text{°C}$) - measured from thermal infrared satellite data
-- $T_d$ = Dew point temperature ($\text{°C}$) - temperature at which air becomes saturated
+- Tn = Temperature difference parameter (°C)
+- WST = Water surface temperature (°C) - measured from thermal infrared satellite data
+- Td = Dew point temperature (°C) - temperature at which air becomes saturated
 
 **Scientific Reasoning**: The temperature difference between water surface and dew point drives evaporation. The factor of 0.5 represents an empirical relationship that accounts for the non-linear response of evaporation to temperature gradients.
 
 #### Step 2: Evaporation Efficiency
 
-$$\eta = 0.35 + 0.015 \times WST + 0.0012 \times T_n^2 \quad \text{(Eq. 9, Abdelrady et al., 2016)}$$
+η = 0.35 + 0.015 × WST + 0.0012 × Tn²  (Eq. 9, Abdelrady et al., 2016)
 
 Where:
-- $\eta$ = Evaporation efficiency (dimensionless)
-- Where:
-- $0.35$ = Baseline evaporation efficiency [dimensionless] - minimum efficiency under neutral conditions
-- $0.015$ = Temperature dependence coefficient [$\text{°C}^{-1}$] - linear temperature sensitivity
-- $0.0012$ = Non-linear temperature effect coefficient [$\text{°C}^{-2}$] - captures enhanced efficiency at high temperatures
+- η = Evaporation efficiency (dimensionless)
+- 0.35 = Baseline evaporation efficiency (dimensionless) - minimum efficiency under neutral conditions
+- 0.015 = Temperature dependence coefficient (°C⁻¹) - linear temperature sensitivity
+- 0.0012 = Non-linear temperature effect coefficient (°C⁻²) - captures enhanced efficiency at high temperatures
 
 **Scientific Reasoning**: Evaporation efficiency increases with water temperature and atmospheric stability. The baseline value represents minimum efficiency under neutral conditions, while the temperature terms account for enhanced molecular activity and vapor pressure differences at higher temperatures.
 
 #### Step 3: Wind Speed Scaling
 
-$$S = 3.3 \times u \quad \text{(Eq. 10, Abdelrady et al., 2016)}$$
+S = 3.3 × u  (Eq. 10, Abdelrady et al., 2016)
 
 Where:
-- $S$ = Scaled wind speed factor [dimensionless] - wind enhancement of evaporation
-- $u$ = Wind speed at reference height [$\text{m}\,\text{s}^{-1}$] - typically measured at 2-10m above surface
-- $3.3$ = Empirical scaling coefficient [$\text{s}\,\text{m}^{-1}$] - derived from field measurements over water bodies
+- S = Scaled wind speed factor (dimensionless) - wind enhancement of evaporation
+- u = Wind speed at reference height (m·s⁻¹) - typically measured at 2-10m above surface
+- 3.3 = Empirical scaling coefficient (s·m⁻¹) - derived from field measurements over water bodies
 
 **Scientific Reasoning**: Wind enhances evaporation by removing saturated air from the water surface and bringing in drier air. The scaling factor converts wind speed into an evaporation enhancement parameter based on field measurements over water bodies.
 
 #### Step 4: Thermal Exchange Coefficient
 
-$$\beta = 4.5 + 0.05 \times WST + (\eta + 0.47) \times S \quad \text{(Eq. 11, Abdelrady et al., 2016)}$$
+β = 4.5 + 0.05 × WST + (η + 0.47) × S  (Eq. 11, Abdelrady et al., 2016)
 
 Where:
-- $\beta$ = Thermal exchange coefficient [$\text{W}\,\text{m}^{-2}\,\text{°C}^{-1}$] - overall heat transfer efficiency
-- $4.5$ = Base thermal conductance [$\text{W}\,\text{m}^{-2}\,\text{°C}^{-1}$] - minimum heat transfer under calm conditions
-- $0.05$ = Temperature sensitivity coefficient [$\text{W}\,\text{m}^{-2}\,\text{°C}^{-2}$] - enhanced transfer at higher temperatures
-- $0.47$ = Wind enhancement baseline [dimensionless] - minimum wind effect on thermal exchange
+- β = Thermal exchange coefficient (W·m⁻²·°C⁻¹) - overall heat transfer efficiency
+- 4.5 = Base thermal conductance (W·m⁻²·°C⁻¹) - minimum heat transfer under calm conditions
+- 0.05 = Temperature sensitivity coefficient (W·m⁻²·°C⁻²) - enhanced transfer at higher temperatures
+- 0.47 = Wind enhancement baseline (dimensionless) - minimum wind effect on thermal exchange
 
 **Scientific Reasoning**: The thermal exchange coefficient represents the efficiency of heat transfer between water and atmosphere. It increases with temperature (enhanced molecular motion) and wind (improved mixing), with the evaporation efficiency providing additional enhancement.
 
 #### Step 5: Equilibrium Temperature
 
-$$T_e = T_d + \frac{SW_{net}}{\beta} \quad \text{(Eq. 12, Abdelrady et al., 2016)}$$
+Te = Td + (SWnet / β)  (Eq. 12, Abdelrady et al., 2016)
 
 Where:
-- $T_e$ = Equilibrium temperature ($\text{°C}$)
-- $SW_{net}$ = Net shortwave radiation ($\text{W}\,\text{m}^{-2}$) - solar energy absorbed by water surface
+- Te = Equilibrium temperature (°C)
+- SWnet = Net shortwave radiation (W·m⁻²) - solar energy absorbed by water surface
 
 **Scientific Reasoning**: The equilibrium temperature represents the theoretical water surface temperature at which net heat exchange would be zero. It increases with available solar energy and decreases with thermal exchange efficiency.
 
 #### Step 6: Water Heat Flux
 
-$$W = \beta \times (T_e - WST) \quad \text{(Eq. 13, Abdelrady et al., 2016)}$$
+W = β × (Te - WST)  (Eq. 13, Abdelrady et al., 2016)
 
 **Scientific Reasoning**: The water heat flux is proportional to the difference between equilibrium and actual water temperatures. Positive values indicate energy storage in the water body (warming), while negative values indicate energy release (cooling).
 
@@ -117,13 +116,13 @@ $$W = \beta \times (T_e - WST) \quad \text{(Eq. 13, Abdelrady et al., 2016)}$$
 
 The latent heat flux is calculated using the Priestley-Taylor equation, which is well-suited for water surfaces where aerodynamic resistance is minimal:
 
-$$LE = \alpha \times \frac{\Delta}{\Delta + \gamma} \times (R_n - W) \quad \text{(Priestley and Taylor, 1972)}$$
+LE = α × (Δ / (Δ + γ)) × (Rn - W)  (Priestley and Taylor, 1972)
 
 Where:
-- $\alpha$ = Priestley-Taylor coefficient (1.26 for water surfaces)
-- $\Delta$ = Slope of saturation vapor pressure curve ($\text{kPa}\,\text{°C}^{-1}$)
-- $\gamma$ = Psychrometric constant ($0.066\,\text{kPa}\,\text{°C}^{-1}$)
-- $\Delta/(\Delta + \gamma)$ = Energy partitioning factor
+- α = Priestley-Taylor coefficient (1.26 for water surfaces)
+- Δ = Slope of saturation vapor pressure curve (kPa·°C⁻¹)
+- γ = Psychrometric constant (0.066 kPa·°C⁻¹)
+- Δ / (Δ + γ) = Energy partitioning factor
 
 **Scientific Reasoning**: The Priestley-Taylor method assumes that evaporation from water surfaces is primarily energy-limited rather than aerodynamically limited. The coefficient α=1.26 accounts for the enhanced evaporation from free water surfaces compared to land surfaces.
 
@@ -131,23 +130,23 @@ Where:
 
 Net radiation is calculated using the Verma et al. method when not provided directly:
 
-$$R_n = SW_{in} \times (1 - \alpha_{surf}) + LW_{in} - LW_{out}$$
+Rn = (SWin × (1 - αsurf)) + LWin - LWout
 
 Where:
-- $SW_{in}$ = Incoming shortwave radiation ($\text{W}\,\text{m}^{-2}$)
-- $\alpha_{surf}$ = Surface albedo (dimensionless)
-- $LW_{in}$ = Incoming longwave radiation ($\text{W}\,\text{m}^{-2}$)
-- $LW_{out}$ = Outgoing longwave radiation ($\text{W}\,\text{m}^{-2}$)
+- SWin = Incoming shortwave radiation (W·m⁻²)
+- αsurf = Surface albedo (dimensionless)
+- LWin = Incoming longwave radiation (W·m⁻²)
+- LWout = Outgoing longwave radiation (W·m⁻²)
 
 ### Salinity Correction
 
 For saline water bodies, evaporation is reduced according to Turk (1970):
 
-$$\sigma = 1.025 - 0.0246 \times \exp(0.00879 \times S) \quad \text{(Eq. 19, Abdelrady et al., 2016)}$$
+σ = 1.025 - 0.0246 × exp(0.00879 × S)  (Eq. 19, Abdelrady et al., 2016)
 
 Where:
-- $\sigma$ = Salinity reduction factor (dimensionless)
-- $S$ = Water salinity ($\text{g}\,\text{L}^{-1}$)
+- σ = Salinity reduction factor (dimensionless)
+- S = Water salinity (g·L⁻¹)
 
 **Scientific Reasoning**: Dissolved salts reduce vapor pressure according to Raoult's law, thereby decreasing evaporation rates. The exponential relationship captures the non-linear effect of increasing salinity concentrations.
 
@@ -268,32 +267,32 @@ water_heat_flux_Wm2 = whf_results["W_Wm2"]  # [W/m²] Water heat flux output
 
 AquaSEBS implements the surface energy balance equation:
 
-$$R_n = LE + H + W$$
+Rn = LE + H + W
 
 Where:
-- $R_n$ = Net radiation ($\text{W}\,\text{m}^{-2}$)
-- $LE$ = Latent heat flux ($\text{W}\,\text{m}^{-2}$) - **calculated using Priestley-Taylor**
-- $H$ = Sensible heat flux ($\text{W}\,\text{m}^{-2}$) - *derived as residual*
-- $W$ = Water heat flux ($\text{W}\,\text{m}^{-2}$) - **calculated using equilibrium temperature model**
+- Rn = Net radiation (W·m⁻²)
+- LE = Latent heat flux (W·m⁻²) - **calculated using Priestley-Taylor**
+- H = Sensible heat flux (W·m⁻²) - *derived as residual*
+- W = Water heat flux (W·m⁻²) - **calculated using equilibrium temperature model**
 
 ### Water Heat Flux Model
 
 The water heat flux is calculated using the equilibrium temperature model:
 
-$$W = \beta (T_e - WST)$$
+W = β (Te - WST)
 
 Where:
-- $\beta$ = Thermal exchange coefficient ($\text{W}\,\text{m}^{-2}\,\text{°C}^{-1}$)
-- $T_e$ = Equilibrium temperature ($\text{°C}$)
-- $WST$ = Water surface temperature ($\text{°C}$)
+- β = Thermal exchange coefficient (W·m⁻²·°C⁻¹)
+- Te = Equilibrium temperature (°C)
+- WST = Water surface temperature (°C)
 
 ### Salinity Correction
 
 For saline water bodies, evaporation is reduced according to:
 
-$$E_s = \sigma \cdot E_{fresh}$$
+Es = σ · Efresh
 
-Where $\sigma$ is the salinity reduction factor based on water salinity concentration.
+Where σ is the salinity reduction factor based on water salinity concentration.
 
 ## Data Requirements
 
