@@ -117,7 +117,7 @@ $$W = \beta \times (T_e - WST) \quad \text{(Eq. 13, Abdelrady et al., 2016)}$$
 
 The latent heat flux is calculated using the Priestley-Taylor equation, which is well-suited for water surfaces where aerodynamic resistance is minimal:
 
-$$LE = \alpha \times \frac{\Delta}{\Delta + \gamma} \times (R_n - W) \quad \text{(Priestley & Taylor, 1972)}$$
+$$LE = \alpha \times \frac{\Delta}{\Delta + \gamma} \times (R_n - W) \quad \text{(Priestley and Taylor, 1972)}$$
 
 Where:
 - $\alpha$ = Priestley-Taylor coefficient (1.26 for water surfaces)
