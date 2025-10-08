@@ -319,18 +319,104 @@ Where $\sigma$ is the salinity reduction factor based on water salinity concentr
 
 ## Validation and Accuracy
 
-AquaSEBS has been validated against:
-- Eddy covariance measurements over Lake IJsselmeer (Netherlands)
-- Field measurements from Lake Tana (Ethiopia) and Lake Victoria (Africa)
-- ECMWF ERA-Interim reanalysis data
+### Comprehensive Validation Study
 
-**Typical accuracies:**
-- **Latent heat flux** [$\text{W}\,\text{m}^{-2}$]: 4-5% relative RMSE for freshwater lakes
-  - Absolute accuracy: ±10-25 W/m² for typical evaporation rates of 200-500 W/m²
-- **Water heat flux** [$\text{W}\,\text{m}^{-2}$]: 6-9% relative RMSE  
-  - Most sensitive to water surface temperature accuracy (±0.5°C requirement)
-- **Salinity effects**: Up to 27% evaporation reduction for hypersaline water (>200 g/L)
-  - Minimal effect (<1%) for freshwater and brackish water (<20 g/L)
+The AquaSEBS methodology has undergone extensive validation in one of the largest open water evaporation validation studies to date. Fisher et al. (2023) evaluated AquaSEBS against **19 in situ open water evaporation sites** from around the world, spanning multiple climate zones and measurement techniques, using both MODIS and Landsat satellite data.
+
+### Validation Sites and Methods
+
+**Geographic Coverage:**
+- **19 validation sites** across 7 Köppen-Geiger climate zones
+- **Measurement techniques:** Eddy covariance (11 sites), Bowen ratio energy balance (5 sites), bulk mass transfer (2 sites), floating evaporation pan (1 site)
+- **Site types:** Reservoirs and lakes of varying sizes from around the world
+- **Climate zones:** Humid subtropical, warm-summer humid continental, hot desert, cold semi-arid, hot semi-arid, cold desert, hot-summer humid continental
+
+**Data Sources:**
+- Great Lakes Evaporation Network (GLEN)
+- US Bureau of Reclamation's Open Water Evaporation Network (OWEN)
+- International research sites from multiple studies
+- Data spanning 1986-2019 across various temporal resolutions
+
+### Performance Metrics
+
+#### Instantaneous Evaporation (Controlled for High Wind Events)
+When controlling for high wind events (>7.5 m/s mean daily), AquaSEBS demonstrates strong performance:
+- **Correlation (r²):** 0.71
+- **RMSE:** 53.7 W/m² (38% of mean)
+- **Bias:** -19.1 W/m² (13% of mean)
+- **Sample size:** 686 cloud-free MODIS scenes
+
+#### Daily Evaporation Estimates
+Daily integration significantly improves accuracy and reduces sensitivity to short-term variations:
+
+**MODIS-based estimates:**
+- **Correlation (r²):** 0.47
+- **RMSE:** 1.5 mm/day (41% of mean)
+- **Bias:** 0.19 mm/day (1% of mean)
+
+**Landsat-based estimates:**
+- **Correlation (r²):** 0.56
+- **RMSE:** 1.2 mm/day (38% of mean)  
+- **Bias:** -0.8 mm/day (26% of mean)
+
+### Sensitivity Analysis
+
+#### High Wind Event Impact
+The methodology shows particular sensitivity to high wind events when evaporation shifts from radiatively-controlled to atmospherically-controlled:
+- **Without wind filtering:** r² = 0.47, RMSE = 84.4 W/m² (62% of mean), Bias = -49.5 W/m² (36% of mean)
+- **With wind filtering:** r² = 0.71, RMSE = 53.7 W/m² (38% of mean), Bias = -19.1 W/m² (13% of mean)
+
+#### Error Predictors
+Statistical analysis revealed key factors affecting model accuracy:
+- **Wind speed:** Primary predictor of evaporation error (coefficient: 20.10, p < 0.001)
+- **Relative humidity:** Secondary predictor (coefficient: -1.56, p < 0.001)
+- **Wind direction:** Tertiary predictor (coefficient: 0.14, p = 0.02)
+
+### Comparison with Previous Studies
+
+**Historical validation results:**
+- **Abdelrady et al. (2016):** RMSE 20-35 W/m², 1.5 mm/day (original development study)
+- **Rodrigues & Costa (2021):** RMSE 0.81-1.25 mm/day, r² 0.51-0.65
+- **This implementation:** RMSE 1.2-1.5 mm/day, r² 0.47-0.71
+
+### Machine Learning Benchmark
+
+Fisher et al. (2023) benchmarked AquaSEBS against 11 machine learning models to establish performance limits:
+- **Top ML models:** Multilayer Perceptron, Elastic Net, LASSO, Ridge Regression, TensorFlow Neural Network
+- **Result:** No machine learning model significantly outperformed AquaSEBS
+- **Error prediction:** Neural networks achieved r² = 0.74 for predicting model errors
+- **Conclusion:** Remaining errors likely due to measurement uncertainties, forcing data limitations, or scale mismatches rather than model formulation
+
+### Operational Validation
+
+**Current applications:**
+- **NASA ECOSTRESS mission:** Operational production of open water evaporation over millions of water bodies
+- **OpenET platform:** Core model for open water evaporation estimation in western United States
+- **Spatial resolution:** Successfully validated from 30m (Landsat) to 1km (MODIS) scales
+
+### Accuracy Summary
+
+**Recommended accuracy expectations:**
+- **Instantaneous estimates:** ±40-60 W/m² depending on wind conditions
+- **Daily estimates:** ±1.2-1.5 mm/day with minimal bias
+- **Optimal conditions:** Calm to moderate wind speeds (<7.5 m/s), clear sky conditions
+- **Temperature sensitivity:** ±0.5°C water surface temperature accuracy required for reliable results
+- **Spatial considerations:** Higher accuracy at 30m Landsat resolution compared to 1km MODIS
+
+### Limitations and Considerations
+
+**Known limitations:**
+- **High wind sensitivity:** Reduced accuracy during high wind events (>7.5 m/s daily mean)
+- **Scale mismatch:** Point measurements vs. pixel-scale estimates introduce uncertainty
+- **Temporal mismatch:** Instantaneous satellite vs. daily/monthly ground measurements
+- **Geographic gaps:** Limited validation in polar and high-altitude regions
+- **Forcing data uncertainty:** Meteorological input uncertainties propagate through model
+
+**Recommended applications:**
+- **Water resource management:** Daily to seasonal evaporation estimates
+- **Climate studies:** Long-term evaporation trends and patterns
+- **Operational monitoring:** Real-time to near-real-time evaporation assessment
+- **Scientific research:** Process understanding and water balance studies
 
 ## Examples and Notebooks
 
