@@ -79,8 +79,8 @@ S = 3.3 × u  (Eq. 10, Abdelrady et al., 2016)
 
 Where:
 - S = Scaled wind speed factor (dimensionless) - wind enhancement of evaporation
-- u = Wind speed at reference height (m·s⁻¹) - typically measured at 2-10m above surface
-- 3.3 = Empirical scaling coefficient (s·m⁻¹) - derived from field measurements over water bodies
+- u = Wind speed at reference height (m/s) - typically measured at 2-10m above surface
+- 3.3 = Empirical scaling coefficient (s/m) - derived from field measurements over water bodies
 
 **Scientific Reasoning**: Wind enhances evaporation by removing saturated air from the water surface and bringing in drier air. The scaling factor converts wind speed into an evaporation enhancement parameter based on field measurements over water bodies.
 
@@ -120,8 +120,8 @@ LE = α × (Δ / (Δ + γ)) × (Rn - W)  (Priestley and Taylor, 1972)
 
 Where:
 - α = Priestley-Taylor coefficient (1.26 for water surfaces)
-- Δ = Slope of saturation vapor pressure curve (kPa·°C⁻¹)
-- γ = Psychrometric constant (0.066 kPa·°C⁻¹)
+- Δ = Slope of saturation vapor pressure curve (kPa/°C)
+- γ = Psychrometric constant (0.066 kPa/°C)
 - Δ / (Δ + γ) = Energy partitioning factor
 
 **Scientific Reasoning**: The Priestley-Taylor method assumes that evaporation from water surfaces is primarily energy-limited rather than aerodynamically limited. The coefficient α=1.26 accounts for the enhanced evaporation from free water surfaces compared to land surfaces.
@@ -146,7 +146,7 @@ For saline water bodies, evaporation is reduced according to Turk (1970):
 
 Where:
 - σ = Salinity reduction factor (dimensionless)
-- S = Water salinity (g·L⁻¹)
+- S = Water salinity (g/L)
 
 **Scientific Reasoning**: Dissolved salts reduce vapor pressure according to Raoult's law, thereby decreasing evaporation rates. The exponential relationship captures the non-linear effect of increasing salinity concentrations.
 
