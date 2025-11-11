@@ -1,6 +1,8 @@
 from typing import Union, Dict
 import numpy as np
 from datetime import datetime
+import logging
+from pytictoc import TicToc
 import rasters as rt
 from rasters import Raster, RasterGeometry
 from NASADEM import NASADEM
@@ -9,10 +11,13 @@ from check_distribution import check_distribution
 from priestley_taylor import epsilon_from_Ta_C, GAMMA_PA, PT_ALPHA
 from verma_net_radiation import verma_net_radiation
 from priestley_taylor import priestley_taylor
+from daylight_evapotranspiration import daylight_ET_from_instantaneous_LE
 
 from .constants import *
 
 from .water_heat_flux import water_heat_flux
+
+logger = logging.getLogger(__name__)
 
 ## TODO use NASADEM surface water body extent to mask out land when processing on rasters
 
@@ -35,6 +40,7 @@ def AquaSEBS(
         α: Union[Raster, np.ndarray, float] = PT_ALPHA,
         γ_Pa: Union[Raster, np.ndarray, float] = GAMMA_PA,
         resampling: str = RESAMPLING_METHOD,
+        upscale_to_daylight: bool = UPSCALE_TO_DAYLIGHT,
         mask_non_water_pixels: bool = MASK_NON_WATER_PIXELS) -> Dict[str, Union[Raster, np.ndarray, float]]:
         # If geometry is not provided, try to infer from surface temperature raster
     results = {}
@@ -142,5 +148,24 @@ def AquaSEBS(
     check_distribution(LE_Wm2, "LE_Wm2")
     results.update(priestley_taylor_results)
     results["LE_Wm2"] = LE_Wm2
+    
+    if upscale_to_daylight and time_UTC is not None:
+        logger.info("started daylight ET upscaling")
+        t_et = TicToc()
+        t_et.tic()
+
+        # Use new upscaling function from daylight_evapotranspiration
+        daylight_results = daylight_ET_from_instantaneous_LE(
+            LE_instantaneous_Wm2=LE_Wm2,
+            Rn_instantaneous_Wm2=Rn_Wm2,
+            G_instantaneous_Wm2=W_Wm2,
+            time_UTC=time_UTC,
+            geometry=geometry
+        )
+        # Add all returned daylight results to output
+        results.update(daylight_results)
+
+        elapsed_et = t_et.tocvalue()
+        logger.info(f"completed daylight ET upscaling (elapsed: {elapsed_et:.2f} seconds)")
 
     return results
